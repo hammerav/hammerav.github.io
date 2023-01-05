@@ -1,41 +1,29 @@
 <?php
-  /**
-  * Requires the "PHP Email Form" library
-  * The "PHP Email Form" library is available only in the pro version of the template
-  * The library should be uploaded to: vendor/php-email-form/php-email-form.php
-  * For more info and help: https://bootstrapmade.com/php-email-form/
-  */
 
-  // Replace contact@example.com with your real receiving email address
-  $receiving_email_address = 'contact@example.com';
+function strip_crlf($string)
+{
+    return str_replace("\r\n", "", $string);
+}
 
-  if( file_exists($php_email_form = '../assets/vendor/php-email-form/php-email-form.php' )) {
-    include( $php_email_form );
-  } else {
-    die( 'Unable to load the "PHP Email Form" Library!');
-  }
+if (! empty($_POST["send"])) {
+    $name = $_POST["userName"];
+    $email = $_POST["userEmail"];
+    $subject = $_POST["subject"];
+    $content = $_POST["content"];
 
-  $contact = new PHP_Email_Form;
-  $contact->ajax = true;
-  
-  $contact->to = $receiving_email_address;
-  $contact->from_name = $_POST['name'];
-  $contact->from_email = $_POST['email'];
-  $contact->subject = $_POST['subject'];
-
-  // Uncomment below code if you want to use SMTP to send emails. You need to enter your correct SMTP credentials
-  /*
-  $contact->smtp = array(
-    'host' => 'example.com',
-    'username' => 'example',
-    'password' => 'pass',
-    'port' => '587'
-  );
-  */
-
-  $contact->add_message( $_POST['name'], 'From');
-  $contact->add_message( $_POST['email'], 'Email');
-  $contact->add_message( $_POST['message'], 'Message', 10);
-
-  echo $contact->send();
+    $toEmail = "contact@hammerav.com";
+    // CRLF Injection attack protection
+    $name = strip_crlf($name);
+    $email = strip_crlf($email);
+    if (! filter_var($email, FILTER_VALIDATE_EMAIL)) {
+        echo "The email address is invalid.";
+    } else {
+        // appending \r\n at the end of mailheaders for end
+        $mailHeaders = "From: " . $name . "<" . $email . ">\r\n";
+        if (mail($toEmail, $subject, $content, $mailHeaders)) {
+            $message = "Your contact information is received successfully.";
+            $type = "success";
+        }
+    }
+}
 ?>
